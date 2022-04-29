@@ -1,8 +1,6 @@
 module.exports = {
   prefix: 'tw-',
-  content: [
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       spacing: {
@@ -11,4 +9,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};
