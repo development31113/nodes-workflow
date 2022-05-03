@@ -1,18 +1,16 @@
-export type WorkStatus = 'toDo' | 'inProgress' | 'done';
+import { INodeSocket } from './INodeSocket';
 
-export interface INodeSocket {
-  isRequired?: boolean;
-  node?: INode;
-}
+export type NodeWorkStatus = 'toDo' | 'inProgress' | 'done';
 
 export interface INode {
+  id?: string;
   title: string;
   description: string;
-  status: WorkStatus;
+  status: NodeWorkStatus;
   icon: React.FC;
   iconClasses?: string;
   nodeClasses?: string;
   inputSockets?: INodeSocket[];
   outputSockets?: INodeSocket[];
-  process: () => void;
+  process: () => Promise<boolean>;
 }
