@@ -13,6 +13,7 @@ export const nodesList: INode[] = [
     nodeClasses: 'tw-bg-amber-500',
     iconClasses: 'tw-text-green-700',
     outputSockets: [{}],
+    locked: false,
     process: async () => {
       await waiter(3000);
       return true;
@@ -24,8 +25,9 @@ export const nodesList: INode[] = [
     icon: HiSwitchHorizontal,
     status: 'toDo',
     nodeClasses: 'tw-bg-yellow-400',
-    inputSockets: [{}],
+    inputSockets: [{}, {}],
     outputSockets: [{}, {}],
+    locked: false,
     process: async () => {
       await waiter(3000);
       return true;
@@ -38,7 +40,8 @@ export const nodesList: INode[] = [
     status: 'toDo',
     nodeClasses: 'tw-bg-green-700',
     iconClasses: 'tw-text-lime-300',
-    inputSockets: [{}],
+    inputSockets: [{}, {}],
+    locked: false,
     process: async () => {
       await waiter(3000);
       return true;

@@ -1,6 +1,6 @@
 import VisualEditorPanel from 'components/panels/visualEditorPanel/VisualEditorPanel';
 import { INode } from 'interfaces/INode';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppPanel from '../containers/AppPanel';
 import OptionsPanel from '../panels/optionsPanel/OptionsPanel';
 const uuid = require('uuid').v4;
@@ -17,33 +17,66 @@ const WorkflowLayout: React.FC = () => {
 
   const startWorkHandler = async () => {
     const nodes = stageNodes.filter((node) => !node.inputSockets && node.outputSockets);
-    for (const node of nodes) {
-      await nodeProgress(node, stageNodes);
-    }
+    startNodesProgress(nodes);
   };
 
-  const nodeProgress = async (node: INode, stageNodes: INode[]) => {
+  const startNodesProgress = async (progressNodes: INode[]) => {
+    const nodes = [...stageNodes];
+    progressNodes.forEach((node) => {
+      const nodeIndex = stageNodes.findIndex((searchNode) => searchNode.id === node.id);
+      if (nodeIndex !== -1) {
+        const node = { ...nodes[nodeIndex] };
+        node.status = 'inProgress';
+        nodes[nodeIndex] = node;
+        if (node.inputSockets) {
+          node.inputSockets.forEach((socket) => {
+            if (socket.node?.id) {
+              const prevNodeIndex = stageNodes.findIndex((searchNode) => searchNode.id === socket.node?.id);
+              if (prevNodeIndex !== -1) {
+                nodes[prevNodeIndex] = { ...nodes[prevNodeIndex], locked: true, status: 'done' };
+              }
+            }
+          });
+        }
+      }
+    });
+    setStageNodes(nodes);
+  };
+
+  const doWork = async (node: INode) => {
     const nodeIndex = stageNodes.findIndex((searchNode) => searchNode.id === node.id);
     if (nodeIndex !== -1) {
-      const progressNodes = [...stageNodes];
-      progressNodes[nodeIndex] = { ...progressNodes[nodeIndex], status: 'inProgress' };
-      setStageNodes(progressNodes);
       const res = await node.process();
       if (res) {
-        const doneNodes = [...progressNodes];
+        const doneNodes = [...stageNodes];
         doneNodes[nodeIndex] = { ...doneNodes[nodeIndex], status: 'done' };
         setStageNodes(doneNodes);
-        if (node.outputSockets) {
-          for (const socket of node.outputSockets) {
-            if (socket.node?.id) {
-              const node = stageNodes.find((node) => node.id === socket.node?.id);
-              node && (await nodeProgress({ ...node }, doneNodes));
-            }
-          }
-        }
       }
     }
   };
+
+  const nextNode = async (node: INode) => {
+    if (node.outputSockets) {
+      const progressNodes: INode[] = [];
+      node.outputSockets.forEach((socket) => {
+        if (socket.node?.id) {
+          const node = stageNodes.find((node) => node.id === socket.node?.id);
+          node && progressNodes.push(node);
+        }
+      });
+      progressNodes.length && startNodesProgress(progressNodes);
+    }
+  };
+
+  useEffect(() => {
+    const nodes = stageNodes.filter((node) => node.status === 'inProgress');
+    if (nodes.length) {
+      doWork(nodes[0]);
+    } else {
+      const doneNodes = stageNodes.filter((node) => node.status === 'done' && !node.locked);
+      doneNodes.length && nextNode(doneNodes[0]);
+    }
+  }, [stageNodes]);
 
   const refreshStageHandler = () => setStageNodes([]);
 

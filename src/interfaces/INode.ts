@@ -12,5 +12,6 @@ export interface INode {
   nodeClasses?: string;
   inputSockets?: INodeSocket[];
   outputSockets?: INodeSocket[];
+  locked: boolean;
   process: () => Promise<boolean>;
 }
